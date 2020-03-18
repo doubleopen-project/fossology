@@ -39,6 +39,7 @@ use Fossology\UI\Api\Controllers\SearchController;
 use Fossology\UI\Api\Controllers\UploadController;
 use Fossology\UI\Api\Controllers\UserController;
 use Fossology\UI\Api\Controllers\VersionController;
+use Fossology\UI\Api\Controllers\ConclusionController;
 use Fossology\UI\Api\Middlewares\RestAuthMiddleware;
 use Fossology\UI\Api\Middlewares\FossologyInitMiddleware;
 use Fossology\UI\Api\Models\Info;
@@ -157,8 +158,14 @@ $app->group(VERSION_1 . 'version',
     $this->get('', VersionController::class . ':getVersion');
   });
 
+////////////////////////////CONCLUSIONS/////////////////////
+$app->group(
+  VERSION_1 . 'conclusions',
+  function () {
+    $this->post('', ConclusionController::class . ':getConclusions');
+  });
+
 $app->run();
 
 $GLOBALS['container']->get("db.manager")->flushStats();
 return 0;
-

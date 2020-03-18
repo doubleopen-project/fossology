@@ -387,4 +387,23 @@ FROM $tableName WHERE $idRowName= " . pg_escape_string($id))["count"])));
     }
     return $validity;
   }
+
+  /**
+   * Get concluded licenses by file has value.
+   * 
+   * @param string $file_hash SHA256 value of the file
+   * @return array $licenses Concluded licenses for the file 
+   */
+  public function getConcludedLicenses($file_hash)
+  {
+    $sql ="SELECT license_ref.rf_shortname
+    FROM license_ref
+    INNER JOIN clearing_event ON license_ref.rf_pk = clearing_event.rf_fk
+    INNER JOIN clearing_decision_event ON clearing_event.clearing_event_pk = clearing_decision_event.clearing_event_fk
+    INNER JOIN clearing_decision ON clearing_decision_event.clearing_decision_fk = clearing_decision.clearing_decision_pk
+    INNER JOIN pfile ON clearing_decision.pfile_fk = pfile.pfile_pk
+    WHERE pfile.pfile_sha256 = $1;";
+    $licenses = $this->dbManager->getRows($sql, [$file_hash]);
+    return $licenses;
+  }
 }
