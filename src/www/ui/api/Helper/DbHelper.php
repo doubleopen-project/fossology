@@ -395,8 +395,13 @@ FROM $tableName WHERE $idRowName= " . pg_escape_string($id))["count"])));
    * @return array $licenses Unique license conclusions for all uploads
    * where file is included  
    */
-  public function getConcludedLicenses($file_hash)
+  public function getConcludedLicenses($file_hash, $userId)
   {
+    if ($userId > 0) {
+      $userSQL = "AND clearing_decision.user_fk = $userId";
+    } else {
+      $userSQL = "";
+    }
     $sql ="SELECT DISTINCT ARRAY_AGG(rf_shortname) licenses FROM
     (SELECT clearing_decision.uploadtree_fk, license_ref.rf_shortname, clearing_event.removed,  rank() OVER (PARTITION BY license_ref.rf_shortname, clearing_decision.uploadtree_fk  ORDER BY clearing_decision.clearing_decision_pk DESC)
         FROM license_ref
@@ -404,7 +409,7 @@ FROM $tableName WHERE $idRowName= " . pg_escape_string($id))["count"])));
         INNER JOIN clearing_decision_event ON clearing_event.clearing_event_pk = clearing_decision_event.clearing_event_fk
         INNER JOIN clearing_decision ON clearing_decision_event.clearing_decision_fk = clearing_decision.clearing_decision_pk
         INNER JOIN pfile ON clearing_decision.pfile_fk = pfile.pfile_pk
-        WHERE pfile.pfile_sha256 = $1) t
+        WHERE pfile.pfile_sha256 = $1 $userSQL) t
         WHERE rank = 1 AND removed = FALSE
         GROUP BY uploadtree_fk;";
     $licenses = $this->dbManager->getRows($sql, [$file_hash]);

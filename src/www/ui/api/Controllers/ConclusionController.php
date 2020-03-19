@@ -46,9 +46,18 @@ class ConclusionController extends RestController
             $error = new Info(403, "No hash list provided!", InfoType::ERROR);
             return $response->withJson($error->getArray(), $error->getCode());
         }
+
+        if ($request->hasHeader('userId') && is_numeric($userId = $request->getHeaderLine('userId')) && $userId > 0) {
+            $userId = $request->getHeaderLine('userId');
+        } elseif($userId == 'self') {
+            $userId = $this->restHelper->getUserId();
+        } else {
+            $userId = 0;
+        }
+
         $hashListWithConclusions = [];
         for ($i = 0; $i < sizeof($hashListJSON); $i ++) {
-            $hashListWithConclusions[] = array($hashListJSON[$i] => $this->dbHelper->getConcludedLicenses($hashListJSON[$i]));
+            $hashListWithConclusions[] = array($hashListJSON[$i] => $this->dbHelper->getConcludedLicenses($hashListJSON[$i], $userId));
         }
         return $response->withJson($hashListWithConclusions, 200);
     }
